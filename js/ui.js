@@ -48,12 +48,12 @@ App.UI = (function() {
 
     if (sections.length === 0) {
       list.innerHTML = '';
-      list.appendChild(empty);
-      if (sortable) { sortable.destroy(); sortable = null; }
+      if (empty) list.appendChild(empty);
+      if (sortable) { try { sortable.destroy(); } catch(e) {} sortable = null; }
       return;
     }
 
-    if (empty.parentNode) empty.remove();
+    if (empty && empty.parentNode) empty.remove();
 
     var html = '';
     sections.forEach(function(section, i) {
@@ -78,19 +78,24 @@ App.UI = (function() {
     if (!list) return;
     if (sortable) { try { sortable.destroy(); } catch(e) {} sortable = null; }
     if (State.getState().sections.length === 0) return;
-    sortable = new Sortable(list, {
-      animation: 150,
-      handle: '.canvas-section',
-      ghostClass: 'drag-over',
-      draggable: '.canvas-section',
-      onEnd: function(evt) {
-        if (evt.oldIndex !== evt.newIndex) {
-          skipPropsRender = true;
-          State.reorderSections(evt.oldIndex, evt.newIndex);
-          skipPropsRender = false;
+    if (typeof Sortable === 'undefined') return;
+    try {
+      sortable = new Sortable(list, {
+        animation: 150,
+        handle: '.canvas-section',
+        ghostClass: 'drag-over',
+        draggable: '.canvas-section',
+        onEnd: function(evt) {
+          if (evt.oldIndex !== evt.newIndex) {
+            skipPropsRender = true;
+            State.reorderSections(evt.oldIndex, evt.newIndex);
+            skipPropsRender = false;
+          }
         }
-      }
-    });
+      });
+    } catch(e) {
+      sortable = null;
+    }
   }
 
   function renderProperties() {
@@ -125,18 +130,19 @@ App.UI = (function() {
   function renderPreview() {
     var visual = document.getElementById('preview-visual');
     var raw = document.getElementById('preview-raw');
+    if (!visual && !raw) return;
     var md = assembleMarkdown();
     if (raw) raw.textContent = md || 'Your README is empty. Add sections from the left panel.';
     if (visual) {
       if (md) {
         try {
-          if (typeof marked !== 'undefined') {
+          if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
             visual.innerHTML = marked.parse(md, { breaks: true, gfm: true });
           } else {
-            visual.innerHTML = '<p style="color:var(--danger)">Markdown renderer not loaded</p>';
+            visual.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px">📝 Markdown preview — Raw output available in the "Raw Markdown" tab</p>';
           }
         } catch (e) {
-          visual.innerHTML = '<p style="color:var(--danger)">Error rendering preview</p>';
+          visual.innerHTML = '<p style="color:var(--danger)">Error rendering preview: ' + U.escapeHtml(e.message) + '</p>';
         }
       } else {
         visual.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px">👋 Your README preview will appear here</p>';
@@ -220,8 +226,13 @@ App.UI = (function() {
     renderProperties();
   }
 
+  function safeOn(el, event, handler) {
+    if (el) el.addEventListener(event, handler);
+  }
+
   function setupEvents() {
-    document.getElementById('palette-list').addEventListener('click', function(e) {
+    var paletteList = document.getElementById('palette-list');
+    safeOn(paletteList, 'click', function(e) {
       var item = e.target.closest('.palette-item');
       if (!item) return;
       var type = item.dataset.sectionType;
@@ -230,7 +241,8 @@ App.UI = (function() {
       }
     });
 
-    document.getElementById('canvas-list').addEventListener('click', function(e) {
+    var canvasList = document.getElementById('canvas-list');
+    safeOn(canvasList, 'click', function(e) {
       var deleteBtn = e.target.closest('[data-action="delete-canvas-section"]');
       if (deleteBtn) {
         e.stopPropagation();
@@ -243,7 +255,7 @@ App.UI = (function() {
     });
 
     var propsBody = document.getElementById('properties-body');
-    propsBody.addEventListener('input', function(e) {
+    safeOn(propsBody, 'input', function(e) {
       if (!e.target.dataset.prop) return;
       if (e.target.type === 'checkbox' || e.target.type === 'select-one' || e.target.tagName === 'SELECT') return;
       skipPropsRender = true;
@@ -251,12 +263,12 @@ App.UI = (function() {
       skipPropsRender = false;
     });
 
-    propsBody.addEventListener('change', function(e) {
+    safeOn(propsBody, 'change', function(e) {
       if (!e.target.dataset.prop) return;
       handlePropUpdate(e.target.dataset.prop, getInputValue(e.target));
     });
 
-    propsBody.addEventListener('click', function(e) {
+    safeOn(propsBody, 'click', function(e) {
       var action = e.target.dataset.action;
       if (!action) return;
       e.preventDefault();
@@ -273,30 +285,32 @@ App.UI = (function() {
       }
     });
 
-    document.getElementById('btn-theme').addEventListener('click', function() {
+    safeOn(document.getElementById('btn-theme'), 'click', function() {
       var current = State.getState().theme;
       State.setTheme(current === 'dark' ? 'light' : 'dark');
     });
 
-    document.getElementById('btn-templates').addEventListener('click', function(e) {
+    safeOn(document.getElementById('btn-templates'), 'click', function(e) {
       e.stopPropagation();
       var menu = document.getElementById('templates-menu');
-      menu.classList.toggle('visible');
+      if (menu) menu.classList.toggle('visible');
     });
 
     document.addEventListener('click', function() {
-      document.getElementById('templates-menu').classList.remove('visible');
+      var menu = document.getElementById('templates-menu');
+      if (menu) menu.classList.remove('visible');
     });
 
-    document.getElementById('templates-menu').addEventListener('click', function(e) {
+    safeOn(document.getElementById('templates-menu'), 'click', function(e) {
       e.stopPropagation();
       var item = e.target.closest('[data-action="apply-template"]');
       if (!item) return;
       applyTemplate(parseInt(item.dataset.templateIndex));
-      document.getElementById('templates-menu').classList.remove('visible');
+      var menu = document.getElementById('templates-menu');
+      if (menu) menu.classList.remove('visible');
     });
 
-    document.getElementById('btn-save').addEventListener('click', function() {
+    safeOn(document.getElementById('btn-save'), 'click', function() {
       if (State.save()) {
         U.showToast('Saved to browser storage', 'success');
       } else {
@@ -304,7 +318,7 @@ App.UI = (function() {
       }
     });
 
-    document.getElementById('btn-load').addEventListener('click', function() {
+    safeOn(document.getElementById('btn-load'), 'click', function() {
       if (State.load()) {
         U.showToast('Loaded from browser storage', 'success');
       } else {
@@ -312,19 +326,20 @@ App.UI = (function() {
       }
     });
 
-    document.querySelectorAll('.preview-tab').forEach(function(tab) {
-      tab.addEventListener('click', function() {
+    var previewTabs = document.querySelectorAll('.preview-tab');
+    previewTabs.forEach(function(tab) {
+      safeOn(tab, 'click', function() {
         var mode = tab.dataset.tab;
         document.querySelectorAll('.preview-tab').forEach(function(t) { t.classList.remove('active'); });
         tab.classList.add('active');
         document.querySelectorAll('.preview-pane').forEach(function(p) { p.classList.remove('active'); });
-        if (mode === 'visual') document.getElementById('preview-visual').classList.add('active');
-        else document.getElementById('preview-raw').classList.add('active');
+        var targetPane = mode === 'visual' ? document.getElementById('preview-visual') : document.getElementById('preview-raw');
+        if (targetPane) targetPane.classList.add('active');
         State.setPreviewMode(mode);
       });
     });
 
-    document.getElementById('btn-copy').addEventListener('click', function() {
+    safeOn(document.getElementById('btn-copy'), 'click', function() {
       var md = assembleMarkdown();
       if (!md) { U.showToast('Nothing to copy', 'error'); return; }
       U.copyToClipboard(md).then(function() {
@@ -334,7 +349,7 @@ App.UI = (function() {
       });
     });
 
-    document.getElementById('btn-download').addEventListener('click', function() {
+    safeOn(document.getElementById('btn-download'), 'click', function() {
       var md = assembleMarkdown();
       if (!md) { U.showToast('Nothing to download', 'error'); return; }
       U.downloadFile('README.md', md);
@@ -361,6 +376,12 @@ App.UI = (function() {
   return { renderAll: renderAll, init: init };
 })();
 
-document.addEventListener('DOMContentLoaded', function() {
-  if (App.UI && App.UI.init) App.UI.init();
-});
+(function startWhenReady() {
+  if (document.readyState !== 'loading') {
+    if (App.UI && App.UI.init) App.UI.init();
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (App.UI && App.UI.init) App.UI.init();
+    });
+  }
+})();
