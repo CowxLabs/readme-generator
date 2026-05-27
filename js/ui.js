@@ -373,15 +373,5 @@ App.UI = (function() {
     renderAll();
   }
 
-  return { renderAll: renderAll, init: init };
-})();
-
-(function startWhenReady() {
-  if (document.readyState !== 'loading') {
-    if (App.UI && App.UI.init) App.UI.init();
-  } else {
-    document.addEventListener('DOMContentLoaded', function() {
-      if (App.UI && App.UI.init) App.UI.init();
-    });
-  }
+  return { init: init, renderAll: renderAll };
 })();
