@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Drag-and-drop builder for GitHub profile READMEs. Add stats cards, skill badges, contribution graphs, quotes, and more.">
+  <meta name="theme-color" content="#0d1117">
+  <title>GitHub Profile README Generator</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="navbar-logo">⚡</span>
+      <span class="navbar-title">README Generator</span>
+    </div>
+    <div class="navbar-actions">
+      <div class="template-dropdown">
+        <button class="btn btn-secondary" id="btn-templates">📋 Templates</button>
+        <div class="dropdown-menu" id="templates-menu"></div>
+      </div>
+      <button class="btn btn-secondary" id="btn-save">💾 Save</button>
+      <button class="btn btn-secondary" id="btn-load">📂 Load</button>
+      <button class="btn btn-icon" id="btn-theme" title="Toggle theme">
+        <span class="theme-icon-dark">🌙</span>
+        <span class="theme-icon-light">☀️</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <aside class="panel panel-left" id="palette">
+      <div class="panel-header">Sections</div>
+      <div class="panel-body" id="palette-list"></div>
+    </aside>
+
+    <main class="panel panel-center" id="canvas">
+      <div class="panel-header">
+        <span>Canvas</span>
+        <span class="panel-header-hint">Drag to reorder &bull; Click to edit</span>
+      </div>
+      <div class="panel-body" id="canvas-list">
+        <div class="canvas-empty" id="canvas-empty">
+          <div class="empty-icon">📝</div>
+          <div class="empty-title">Your README is empty</div>
+          <div class="empty-hint">Click a section from the left panel to get started</div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="panel panel-right" id="properties">
+      <div class="panel-header">Properties</div>
+      <div class="panel-body" id="properties-body">
+        <div class="properties-empty">Select a section to edit its properties</div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="preview-panel">
+    <div class="preview-tabs">
+      <button class="preview-tab active" data-tab="visual">👁 Visual Preview</button>
+      <button class="preview-tab" data-tab="raw">📄 Raw Markdown</button>
+      <div class="preview-actions">
+        <button class="btn btn-primary" id="btn-copy">📋 Copy</button>
+        <button class="btn btn-primary" id="btn-download">⬇ Download .md</button>
+      </div>
+    </div>
+    <div class="preview-content" id="preview-content">
+      <div class="preview-pane active" id="preview-visual"></div>
+      <pre class="preview-pane" id="preview-raw"></pre>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/core.js"></script>
+  <script src="js/sections.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/ui.js"></script>
+  <script>App.init();</script>
+</body>
+</html>
