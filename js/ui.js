@@ -5,6 +5,7 @@ App.UI = (function() {
   var sortable = null;
   var skipPropsRender = false;
   var lastSelectedIndex = -1;
+  var emptyTemplateHtml = null;
 
   function getInputValue(el) {
     if (el.type === 'checkbox') return el.checked;
@@ -40,20 +41,16 @@ App.UI = (function() {
 
   function renderCanvas() {
     var list = document.getElementById('canvas-list');
-    var empty = document.getElementById('canvas-empty');
     if (!list) return;
     var s = State.getState();
     var sections = s.sections;
     var selected = s.selectedIndex;
 
     if (sections.length === 0) {
-      list.innerHTML = '';
-      if (empty) list.appendChild(empty);
+      list.innerHTML = emptyTemplateHtml || '';
       if (sortable) { try { sortable.destroy(); } catch(e) {} sortable = null; }
       return;
     }
-
-    if (empty && empty.parentNode) empty.remove();
 
     var html = '';
     sections.forEach(function(section, i) {
@@ -366,6 +363,12 @@ App.UI = (function() {
   }
 
   function init() {
+    var emptyEl = document.getElementById('canvas-empty');
+    if (emptyEl) {
+      emptyTemplateHtml = emptyEl.outerHTML;
+    } else {
+      emptyTemplateHtml = '<div class="canvas-empty" id="canvas-empty"><div class="empty-icon">📝</div><div class="empty-title">Your README is empty</div><div class="empty-hint">Click a section from the left panel to get started</div></div>';
+    }
     renderPalette();
     renderTemplates();
     setupEvents();

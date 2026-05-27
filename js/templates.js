@@ -7,7 +7,7 @@ App.Templates = [
       { type: 'about', config: { text: 'I\'m a passionate developer who loves building clean, efficient solutions.', imageUrl: '' } },
       { type: 'badges', config: { selectedBadges: ['javascript', 'typescript', 'react', 'nodejs', 'python', 'git', 'vscode', 'docker'], style: 'for-the-badge' } },
       { type: 'divider', config: { style: 'simple' } },
-      { type: 'social', config: { twitter: '', linkedin: '', github: '', website: '' } }
+      { type: 'social', config: { twitter: '', linkedin: '', website: '' } }
     ]
   },
   {
